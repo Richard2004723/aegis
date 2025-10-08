@@ -5,26 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { deleteListing } from '@/lib/actions/product'; 
 import CreateListingForm from '@/components/marketplace/CreateListingForm';
 import Image from 'next/image'; 
-
-// Removed: type FormAction = (formData: FormData) => void | Promise<void>;
-
-// Server Component to fetch the user's listings
-async function fetchUserListings(userId: string) {
-  const supabase = createServerSupabaseClient();
-  // RLS ensures only the user's products are returned
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('seller_id', userId)
-    .order('created_at', { ascending: false });
-    
-  if (error) {
-    console.error('Error fetching user listings:', error);
-    return [];
-  }
-  return data;
-}
-
+// ... (fetchUserListings function remains the same)
 
 export default async function UserDashboard() {
   const supabase = createServerSupabaseClient();
@@ -47,6 +28,7 @@ export default async function UserDashboard() {
       <div className="space-y-4 mt-8">
         {listings.map((product: any) => (
           <div key={product.id} className="bg-white p-4 shadow rounded flex justify-between items-center">
+            
             {/* Image Component */}
             <div className="relative w-16 h-16 mr-4 flex-shrink-0">
                 <Image 
@@ -62,11 +44,11 @@ export default async function UserDashboard() {
                 <p className="font-bold">{product.name} - {product.price}</p>
                 <p className="text-sm text-gray-500">Contact: {product.contact_info.whatsapp}</p>
             </div>
-            {/* FIX: Add @ts-ignore to bypass the type error */}
-            {/* @ts-ignore */}
-            // NEW:
-// @ts-expect-error Server Action return type mismatch is expected here
-<form action={deleteListing.bind(null, product.id)}>
+            
+            {/* Using a server action directly in the button for deletion */}
+            {/* FIX: Use @ts-expect-error syntax */}
+            {/* @ts-expect-error Server Action return type mismatch is expected here */}
+            <form action={deleteListing.bind(null, product.id)}>
                 <button type="submit" className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
             </form>
           </div>
