@@ -1,27 +1,27 @@
-// app/api/admin/wanted/route.ts
-import { NextResponse, NextRequest } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { checkAdminRole } from "@/lib/utils/auth";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-  const { isAdmin, error: authError } = await checkAdminRole();
-  if (!isAdmin) {
-    return NextResponse.json({ error: authError }, { status: 403 });
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+
+  // example response
+  return NextResponse.json({ postId: id });
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+  const { status } = await request.json();
+
+  if (!["approved", "denied"].includes(status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("wanted_posts")
-    .select("*, submitted_by:users!submitted_by_id(username)")
-    .eq("status", "pending")
-    .order("created_at", { ascending: true });
+  // do your supabase update here
 
-  if (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch pending posts." },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json(data);
+  return NextResponse.json({ message: `Post ${id} ${status}` });
 }
