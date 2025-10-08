@@ -1,6 +1,7 @@
 // app/(protected)/dashboard/page.tsx
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createListing, deleteListing } from '@/lib/actions/product'; 
+import CreateListingForm from '@/components/marketplace/CreateListingForm'; // FIX: Missing import
 
 // Server Component to fetch the user's listings
 async function fetchUserListings(userId: string) {

@@ -26,8 +26,8 @@ export default async function PublicWantedPage() {
       <h1 className="text-4xl font-bold mb-8 text-red-700 text-center">Aegis Wanted Board 🚨</h1>
       
       <p className="text-center text-sm text-gray-600 mb-8">
-        These posts have been reviewed and approved by Aegis Administration. To submit a post, use the "Submit" link.
-      </p>
+  These posts have been reviewed and approved by Aegis Administration. To submit a post, use the 'Submit' link.
+</p>
 
       {posts.length === 0 ? (
         <p className="text-center p-6 bg-gray-100 rounded">The board is currently clear.</p>
