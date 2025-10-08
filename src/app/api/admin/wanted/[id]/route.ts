@@ -2,10 +2,15 @@ import { NextResponse, NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { checkAdminRole } from '@/lib/utils/auth';
 
+// Define the arguments structure expected by the Vercel/Next.js compiler bug
+interface RouteContext {
+    params: Promise<{ id: string }>; // CRITICAL FIX: The compiler demands params be wrapped in a Promise
+}
+
 // 1. Handles POST to approve or deny a specific post
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { id: string } } // Use simple destructuring
+    context: RouteContext 
 ) {
     const { isAdmin, error: authError } = await checkAdminRole();
     if (!isAdmin) {
@@ -13,7 +18,7 @@ export async function POST(
     }
 
     const { status } = await request.json(); 
-    const postId = params.id; 
+    const { id: postId } = await context.params; // CRITICAL FIX: Must await the params object
 
     if (status !== 'approved' && status !== 'denied') {
         return NextResponse.json({ error: 'Invalid status provided.' }, { status: 400 });
@@ -39,14 +44,14 @@ export async function POST(
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export async function GET(
     request: NextRequest, 
-    { params }: { params: { id: string } } // Use simple destructuring
+    context: RouteContext
 ) {
     const { isAdmin, error: authError } = await checkAdminRole();
     if (!isAdmin) {
         return NextResponse.json({ error: authError }, { status: 403 });
     }
 
-    const postId = params.id; // Use the ID from params
+    const { id: postId } = await context.params; // CRITICAL FIX: Must await the params object
     const supabase = createServerSupabaseClient();
     
     // Fetch a SINGLE post by ID
@@ -54,7 +59,7 @@ export async function GET(
         .from('wanted_posts')
         .select('*, submitted_by:users!submitted_by_id(username)')
         .eq('id', postId)
-        .single(); // Use .single() as we expect one result
+        .single(); 
 
     if (error) {
         return NextResponse.json({ error: 'Failed to fetch post.' }, { status: 500 });
