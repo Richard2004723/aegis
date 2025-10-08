@@ -5,8 +5,24 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { deleteListing } from '@/lib/actions/product'; 
 import CreateListingForm from '@/components/marketplace/CreateListingForm';
 import Image from 'next/image'; 
-// ... (fetchUserListings function remains the same)
 
+// 1. HELPER FUNCTION DEFINED FIRST (Fixes "Cannot find name" error)
+async function fetchUserListings(userId: string) {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('seller_id', userId)
+    .order('created_at', { ascending: false });
+    
+  if (error) {
+    console.error('Error fetching user listings:', error);
+    return [];
+  }
+  return data;
+}
+
+// 2. MAIN COMPONENT DEFINITION
 export default async function UserDashboard() {
   const supabase = createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -15,6 +31,7 @@ export default async function UserDashboard() {
     return <div>Redirecting to login...</div>;
   }
 
+  // 3. FUNCTION IS CALLED AFTER IT IS DEFINED
   const listings = await fetchUserListings(user.id);
   
   return (
@@ -46,7 +63,6 @@ export default async function UserDashboard() {
             </div>
             
             {/* Using a server action directly in the button for deletion */}
-            {/* FIX: Use @ts-expect-error syntax */}
             {/* @ts-expect-error Server Action return type mismatch is expected here */}
             <form action={deleteListing.bind(null, product.id)}>
                 <button type="submit" className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
