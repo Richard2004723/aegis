@@ -2,10 +2,17 @@ import { NextResponse, NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { checkAdminRole } from '@/lib/utils/auth';
 
+// Define the arguments structure for clarity, but use the simplified signature below
+interface RouteContext {
+    params: {
+        id: string;
+    };
+}
+
 // 1. Handles POST to approve or deny a specific post
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { id: string } } // FIX: Use destructuring for simple, clean access
+    context: RouteContext // Keep the simple context type for internal use
 ) {
     const { isAdmin, error: authError } = await checkAdminRole();
     if (!isAdmin) {
@@ -13,7 +20,7 @@ export async function POST(
     }
 
     const { status } = await request.json(); 
-    const postId = params.id; 
+    const postId = context.params.id; // Access the ID from context.params
 
     if (status !== 'approved' && status !== 'denied') {
         return NextResponse.json({ error: 'Invalid status provided.' }, { status: 400 });
@@ -36,25 +43,24 @@ export async function POST(
 
 
 // 2. Handles GET to fetch all PENDING wanted posts
-// FIX: Using destructuring { params } satisfies the compiler's requirements.
-// The 'request' parameter is unused here, so we disable the warning for clean deployment.
+// We must disable the unused variable warning here since Next.js requires these arguments.
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export async function GET(
     request: NextRequest, 
-    { params }: { params: { id: string } }
+    context: RouteContext // Final fix: Use the custom interface for internal consistency
 ) {
     const { isAdmin, error: authError } = await checkAdminRole();
     if (!isAdmin) {
         return NextResponse.json({ error: authError }, { status: 403 });
     }
 
+    // This route does not use context.params.id, but the signature must be correct.
     const supabase = createServerSupabaseClient();
     
     // Fetch only posts where status is 'pending'
     const { data, error } = await supabase
-        // The column alias for linking the username:
         .from('wanted_posts')
-        .select('*, submitted_by:users!submitted_by_id(username)') 
+        .select('*, submitted_by:users!submitted_by_id(username)')
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
 
