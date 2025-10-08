@@ -1,4 +1,5 @@
 // app/(public)/wanted/page.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 // Server Component to fetch APPROVED wanted posts
@@ -25,8 +26,8 @@ export default async function PublicWantedPage() {
     <div className="container mx-auto p-6">
       <h1 className="text-4xl font-bold mb-8 text-red-700 text-center">Aegis Wanted Board 🚨</h1>
       
-      <p className="text-center text-sm text-gray-600 mb-8">
-  These posts have been reviewed and approved by Aegis Administration. To submit a post, use the 'Submit' link.
+<p className="text-center text-sm text-gray-600 mb-8">
+    These posts have been reviewed and approved by Aegis Administration. To submit a post, use the &apos;Submit&apos; link.
 </p>
 
       {posts.length === 0 ? (
