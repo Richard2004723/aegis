@@ -1,59 +1,65 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { checkAdminRole } from "@/lib/utils/auth";
+import { NextResponse, NextRequest } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { checkAdminRole } from '@/lib/utils/auth';
 
-// GET one post by ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { isAdmin, error: authError } = await checkAdminRole();
-  if (!isAdmin) {
-    return NextResponse.json({ error: authError }, { status: 403 });
-  }
-
-  const { id } = params;
-  const supabase = createServerSupabaseClient();
-
-  const { data, error } = await supabase
-    .from("wanted_posts")
-    .select("*, submitted_by:users!submitted_by_id(username)")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: "Failed to fetch post." }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
-}
-
-// POST update post status (approve/deny)
+// 1. Handles POST to approve or deny a specific post
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+    request: NextRequest, 
+    { params }: { params: { id: string } } // Use simple destructuring
 ) {
-  const { isAdmin, error: authError } = await checkAdminRole();
-  if (!isAdmin) {
-    return NextResponse.json({ error: authError }, { status: 403 });
-  }
+    const { isAdmin, error: authError } = await checkAdminRole();
+    if (!isAdmin) {
+        return NextResponse.json({ error: authError }, { status: 403 });
+    }
 
-  const { id } = params;
-  const { status } = await request.json();
+    const { status } = await request.json(); 
+    const postId = params.id; 
 
-  if (!["approved", "denied"].includes(status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-  }
+    if (status !== 'approved' && status !== 'denied') {
+        return NextResponse.json({ error: 'Invalid status provided.' }, { status: 400 });
+    }
 
-  const supabase = createServerSupabaseClient();
-  const { error } = await supabase
-    .from("wanted_posts")
-    .update({ status })
-    .eq("id", id);
+    const supabase = createServerSupabaseClient();
+    
+    // Update the status of the specific wanted post
+    const { error } = await supabase
+        .from('wanted_posts')
+        .update({ status: status })
+        .eq('id', postId);
 
-  if (error) {
-    return NextResponse.json({ error: "Failed to update post status." }, { status: 500 });
-  }
+    if (error) {
+        return NextResponse.json({ error: 'Failed to update post status.' }, { status: 500 });
+    }
 
-  return NextResponse.json({ message: `Post ${id} successfully ${status}.` });
+    return NextResponse.json({ message: `Post successfully ${status}.` });
 }
+
+
+// 2. Handles GET for a specific post (ID-based fetch)
+/* eslint-disable @typescript-eslint/no-unused-vars */
+export async function GET(
+    request: NextRequest, 
+    { params }: { params: { id: string } } // Use simple destructuring
+) {
+    const { isAdmin, error: authError } = await checkAdminRole();
+    if (!isAdmin) {
+        return NextResponse.json({ error: authError }, { status: 403 });
+    }
+
+    const postId = params.id; // Use the ID from params
+    const supabase = createServerSupabaseClient();
+    
+    // Fetch a SINGLE post by ID
+    const { data, error } = await supabase
+        .from('wanted_posts')
+        .select('*, submitted_by:users!submitted_by_id(username)')
+        .eq('id', postId)
+        .single(); // Use .single() as we expect one result
+
+    if (error) {
+        return NextResponse.json({ error: 'Failed to fetch post.' }, { status: 500 });
+    }
+    
+    return NextResponse.json(data);
+}
+/* eslint-enable @typescript-eslint/no-unused-vars */
