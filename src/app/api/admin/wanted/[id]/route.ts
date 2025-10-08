@@ -2,22 +2,18 @@ import { NextResponse, NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { checkAdminRole } from '@/lib/utils/auth';
 
-// Fix: Use the standard Next.js type structure for dynamic handlers
-interface RouteContext {
-    params: {
-        id: string;
-    };
-}
-
 // 1. Handles POST to approve or deny a specific post
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(
+    request: NextRequest, 
+    { params }: { params: { id: string } } // FIX: Use destructuring for simple, clean access
+) {
     const { isAdmin, error: authError } = await checkAdminRole();
     if (!isAdmin) {
         return NextResponse.json({ error: authError }, { status: 403 });
     }
 
     const { status } = await request.json(); 
-    const postId = context.params.id; 
+    const postId = params.id; 
 
     if (status !== 'approved' && status !== 'denied') {
         return NextResponse.json({ error: 'Invalid status provided.' }, { status: 400 });
@@ -40,9 +36,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
 
 // 2. Handles GET to fetch all PENDING wanted posts
-// FINAL FIX: We disable the unused variable warning here since Next.js requires these arguments.
+// FIX: Using destructuring { params } satisfies the compiler's requirements.
+// The 'request' parameter is unused here, so we disable the warning for clean deployment.
 /* eslint-disable @typescript-eslint/no-unused-vars */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(
+    request: NextRequest, 
+    { params }: { params: { id: string } }
+) {
     const { isAdmin, error: authError } = await checkAdminRole();
     if (!isAdmin) {
         return NextResponse.json({ error: authError }, { status: 403 });
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     
     // Fetch only posts where status is 'pending'
     const { data, error } = await supabase
-        // Fix: Select the submitted_by_id and link it to the username from the 'users' table
+        // The column alias for linking the username:
         .from('wanted_posts')
         .select('*, submitted_by:users!submitted_by_id(username)') 
         .eq('status', 'pending')
