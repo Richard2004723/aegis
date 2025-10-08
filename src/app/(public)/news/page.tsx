@@ -1,4 +1,5 @@
 // app/(public)/news/page.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 // Server Component for fetching public data

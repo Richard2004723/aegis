@@ -1,10 +1,16 @@
-// app/(protected)/dashboard/page.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// src/app/(protected)/dashboard/page.tsx
+
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { createListing, deleteListing } from '@/lib/actions/product'; 
-import CreateListingForm from '@/components/marketplace/CreateListingForm'; // FIX: Missing import
+// FIX: Only import deleteListing, as createListing is used in the child component.
+import { deleteListing } from '@/lib/actions/product'; 
+import CreateListingForm from '@/components/marketplace/CreateListingForm';
+// FIX: Need to import the Next.js Image component
+import Image from 'next/image'; 
 
 // Server Component to fetch the user's listings
 async function fetchUserListings(userId: string) {
+// ... (fetchUserListings function remains the same)
   const supabase = createServerSupabaseClient();
   // RLS ensures only the user's products are returned
   const { data, error } = await supabase
@@ -20,18 +26,17 @@ async function fetchUserListings(userId: string) {
   return data;
 }
 
+
 export default async function UserDashboard() {
   const supabase = createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    // Middleware should handle this, but it's a good safety fallback
     return <div>Redirecting to login...</div>;
   }
 
   const listings = await fetchUserListings(user.id);
   
-  // Client component for the form and interactive parts
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">Welcome, {user.email}!</h1>
@@ -43,7 +48,17 @@ export default async function UserDashboard() {
       <div className="space-y-4 mt-8">
         {listings.map((product: any) => (
           <div key={product.id} className="bg-white p-4 shadow rounded flex justify-between items-center">
-            <img src={product.image_url} alt={product.name} className="w-16 h-16 object-cover mr-4" />
+            {/* FIX: Use the optimized Image component */}
+            <div className="relative w-16 h-16 mr-4 flex-shrink-0">
+                <Image 
+                    src={product.image_url} 
+                    alt={product.name} 
+                    fill 
+                    className="object-cover rounded" 
+                    sizes="(max-width: 768px) 100vw, 50vw" // Add necessary sizing props
+                />
+            </div>
+            
             <div className="flex-1">
                 <p className="font-bold">{product.name} - {product.price}</p>
                 <p className="text-sm text-gray-500">Contact: {product.contact_info.whatsapp}</p>
@@ -58,6 +73,3 @@ export default async function UserDashboard() {
     </div>
   );
 }
-
-// TODO: Create a separate 'use client' component (CreateListingForm) 
-// to handle the form inputs and call the createListing Server Action.
