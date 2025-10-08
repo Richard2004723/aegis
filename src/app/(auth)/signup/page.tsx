@@ -1,6 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client'; // Your client-side client
+import { createProfile } from '@/lib/actions/auth';
 // We will use a Server Action to handle the profile creation securely
 
 const SignUpPage = () => {
