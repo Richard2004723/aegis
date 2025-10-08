@@ -4,7 +4,7 @@ import { checkAdminRole } from '@/lib/utils/auth';
 
 // CRITICAL FIX: Define the context with a Promise-wrapped params to satisfy the compiler bug.
 interface RouteContext {
-    params: Promise<{ id: string }>; 
+    params: Promise<{ id: string }>; // Compiler demands params be wrapped in a Promise
 }
 
 // 1. Handles POST to approve or deny a specific post
