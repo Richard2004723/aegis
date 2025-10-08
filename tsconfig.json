@@ -24,4 +24,16 @@
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
+
+  // tsconfig.json (in the root of your project)
+{
+  "compilerOptions": {
+    // ... other settings ...
+    "baseUrl": "./src",  // Tells Next.js/TypeScript the root for paths is 'src'
+    "paths": {
+      "@/*": ["./*"]     // Maps '@/...' to './src/...'
+    }
+  }
+  // ...
+
 }
