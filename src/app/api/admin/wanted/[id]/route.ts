@@ -2,9 +2,9 @@ import { NextResponse, NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { checkAdminRole } from '@/lib/utils/auth';
 
-// Define the arguments structure expected by the Vercel/Next.js compiler bug
+// CRITICAL FIX: Define the context with a Promise-wrapped params to satisfy the compiler bug.
 interface RouteContext {
-    params: Promise<{ id: string }>; // CRITICAL FIX: The compiler demands params be wrapped in a Promise
+    params: Promise<{ id: string }>; 
 }
 
 // 1. Handles POST to approve or deny a specific post
@@ -18,8 +18,8 @@ export async function POST(
     }
 
     const { status } = await request.json(); 
-    const { id: postId } = await context.params; // CRITICAL FIX: Must await the params object
-
+    const { id: postId } = await context.params; // FIX: Must AWAIT context.params
+    
     if (status !== 'approved' && status !== 'denied') {
         return NextResponse.json({ error: 'Invalid status provided.' }, { status: 400 });
     }
@@ -44,14 +44,14 @@ export async function POST(
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export async function GET(
     request: NextRequest, 
-    context: RouteContext
+    context: RouteContext // Using Promise-wrapped type here
 ) {
     const { isAdmin, error: authError } = await checkAdminRole();
     if (!isAdmin) {
         return NextResponse.json({ error: authError }, { status: 403 });
     }
 
-    const { id: postId } = await context.params; // CRITICAL FIX: Must await the params object
+    const { id: postId } = await context.params; // FIX: Must AWAIT context.params
     const supabase = createServerSupabaseClient();
     
     // Fetch a SINGLE post by ID
